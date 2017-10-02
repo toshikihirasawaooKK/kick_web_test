@@ -1,0 +1,29 @@
+AuthUserFile /home/sites/heteml/users/t/o/y/toys/web/.htpasswd
+AuthType Basic
+AuthName "Web access"
+Require valid-user
+Satisfy any
+Order allow,deny
+
+# FB のクローラを許可
+SetEnvIf User-Agent "^facebookexternalhit.*$" crawler
+SetEnvIf User-Agent "^facebookplatform.*$" crawler
+# TW のクローラを許可
+SetEnvIf User-Agent "^Twitterbot.*$" crawler
+Allow from env=crawler
+
+#<Files ~ "\.(wav|mp3|ogg)$">
+#Satisfy Any
+#Allow from all
+#</Files>
+
+#RewriteEngine on
+#RewriteBase /
+
+#############################
+# for smartphone
+#RewriteCond %{REQUEST_URI} !^/sugao/sp/.*$
+#RewriteCond %{REQUEST_URI} !^/sugao/person/.*$
+#RewriteCond %{HTTP_USER_AGENT} (iPod|iPhone|iPad|Android|Windows.Phone) [NC]
+#RewriteCond %{HTTP_COOKIE} !viewmode=pc
+#RewriteRule ^(.*)$ /sugao/sp/$1 [R=301,L]
