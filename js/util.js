@@ -967,8 +967,6 @@ var FacebookNewsClass = function(){
 
             var num1 = messageArr.indexOf("■タイトル");
             var num2 = messageArr.indexOf("■展開施策");
-			var num3 = messageArr.indexOf("■人事インタビュー");
-			var num4 = messageArr.indexOf("■お知らせ");
 										  
 
             var message = messageArr.slice(num1+1,num2);
