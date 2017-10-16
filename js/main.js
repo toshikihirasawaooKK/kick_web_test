@@ -21,7 +21,6 @@ var MainClass = function(){
 
     var spNav = new SpGnavClass();
     var pcNav = new PcGnavClass();
-    var fbNews = new FacebookNewsClass();
 
     var $nav;
 
@@ -39,15 +38,6 @@ var MainClass = function(){
 
         spNav.onCreate();
         pcNav.onCreate();
-
-        $.ajaxSetup({ cache: true });
-        $.getScript('//connect.facebook.net/en_US/sdk.js', function(){
-            FB.init({
-                appId: '1609567179115835',
-                version: 'v2.10'
-            });
-            fbNews.onCreate();
-        });
 
     }
 
@@ -176,11 +166,6 @@ var MainClass = function(){
 
         if(nowHref.match("/$")) nowHref += "index.html";
         nowPid = pid;
-
-        if(fbNews.isLoad){
-            fbNews.onSet();
-            if(pid) page[pid].onFacebookSetEvent();
-        }
 
         var imgloader = new ImageLoadClass($("#pjax_target"));
         imgloader.bind(imgloader.ONLOADEND,function(){

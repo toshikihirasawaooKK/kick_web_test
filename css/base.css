@@ -1313,6 +1313,7 @@ button { cursor: pointer; }
         width: 100%;
         letter-spacing: 0;
         text-align: left;
+        margin: 0 0 0 10%;
     }
     #header #nav .facebook .logo,
     #header #nav .facebook p {

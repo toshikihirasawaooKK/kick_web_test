@@ -530,76 +530,14 @@ var IndexCompanySectionClass = function(){
 }
 
 var IndexFacebookClass = function(){
-    var parent = new BaseClass();
-    var $wrap,$target,$inner,$logo;
-    var timerId;
-    var isOpen = true;
-    var isAnim = false;
+    var parent = new SectionBaseClass("#top.page .mainvisual .facebook");
     parent.onCreate = function(){
-        $wrap = $("#top.page .mainvisual .facebook");
-        $target = $("p a",$wrap);
-        $inner = $(".in",$target);
-        $logo = $(".logo a",$wrap);
-        isOpen = true;
-        isAnim = false;
-
-        $wrap.css({opacity:0,y:Util.BASE_YPOS});
-
-        $logo.on("click",onClick_logo);
+        parent.super.onCreate();
+        parent.target.css({opacity:0,y:Util.BASE_YPOS});
     }
 
-    parent.onLoad = function(){
-        onActive();
-    }
-
-    parent.onRemove = function(){
-        clearTimeout(timerId);
-        $target.stop(true,false);
-    }
-
-    parent.onFacebookSetEvent = function(){
-        onActive();
-    }
-
-    function onActive(){
-        if(!isOpen) return;
-
-        isAnim = true;
-        $wrap.animate({opacity:1,y:0},Util.BASE_TIME,Util.BASE_EASING,function(){
-            isAnim = false;
-            onStart();
-        });
-    }
-
-    function onStart(){
-        timerId = setTimeout(function(){
-            onClose();
-        },3000);
-    }
-
-    function onClose(){
-        isAnim = true;
-        $inner.css({width:$inner.width(),height:$inner.height()});
-        $target.css({overflow:"hidden"}).stop(true,false).animate({width:"0%"},Util.BASE_TIME,Util.BASE_EASING,function(){
-            isAnim = false;
-            isOpen = false;
-        });
-    }
-
-    function onOpen(){
-        isAnim = true;
-        var w = $inner.width();
-        $target.stop(true,false).animate({width:w},Util.BASE_TIME,Util.BASE_EASING,function(){
-            isAnim = false;
-            isOpen = true;
-            onStart();
-        });
-    }
-
-    function onClick_logo(){
-        if(isOpen || isAnim) return false;
-        onOpen();
-        return false;
+    parent.onActive = function(){
+        parent.target.animate({opacity:1,y:0},Util.BASE_TIME,Util.BASE_EASING);
     }
 
     return parent;

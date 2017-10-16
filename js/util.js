@@ -742,7 +742,6 @@ var PjaxPageClass = function(){
     parent.onRemove = function(){ onRemove(); }
     parent.super.onRemove = function(){ onRemove(); }
     parent.onPjaxPopstate = function(event,e){}
-    parent.onFacebookSetEvent = function(){}
     return parent;
 }
 
@@ -921,63 +920,6 @@ var SpGnavClass = function(){
             $(this).css({display:"none",overflow:"hidden"});
             $("body").css({overflow:"visible"});
         });
-    }
-
-    return parent;
-}
-
-var FacebookNewsClass = function(){
-    var parent = new BaseClass();
-    parent.isLoad = false;
-    var json;
-    parent.onCreate = function(){
-        FB.api(
-            '/kickworld7',
-            'GET',
-            {
-                "access_token":"1609567179115835|b6U8T_afuikXRvGbtt7Q3U2B8nE",
-                "fields":"feed.limit(10){message,created_time,permalink_url}"
-            },
-            function(response) {
-                parent.isLoad = true;
-                json = response.feed.data;
-
-                parent.onSet();
-            }
-        );
-    }
-
-    parent.onSet = function(_target){
-        var $parent = (_target)? $(_target) : $("body");
-        var d;
-        for(var i = 0; i<json.length; i++){
-            if(json[i].message){
-                if(json[i].message.indexOf("■タイトル") !== -1 && json[i].message.indexOf("■展開施策") !== -1){
-                    d = json[i];
-                    break;
-                }
-            }
-        }
-
-        if(d){
-            var dataStr = d.created_time.split("T");
-            var str1 = dataStr[0].split("-");
-            var time = str1.join("/");
-            var messageArr = d.message.split(/\r\n|\r|\n/);
-
-            var num1 = messageArr.indexOf("■タイトル");
-            var num2 = messageArr.indexOf("■展開施策");
-										  
-
-            var message = messageArr.slice(num1+1,num2);
-
-            $(".js-facebook_news",$parent).each(function(){
-                var _this = $(this);
-                $("p a",_this).attr({href:d.permalink_url});
-                $(".date",_this).text(time);
-                $(".txt",_this).html(message.join('<br>'));
-            });
-        }
     }
 
     return parent;
