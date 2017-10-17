@@ -249,35 +249,38 @@ var IndexMainVisualEffectClass = function(){
 
         var urlVar = Util.getUrlVars();
         var telop = "";
-        if(!urlVar){
-            telop = data.telop;
+        if(!urlVar || !urlVar.w){
+            telop = data.weather;
         } else {
             switch (urlVar.w){
-                case "snow":
-                    telop = "雪";
+                case WEATHER_Utill.TYPE_CLEAR:
+                    telop = WEATHER_Utill.TYPE_CLEAR;
                     break;
-                case "rain":
-                    telop = "雨";
+                case WEATHER_Utill.TYPE_CLOUD:
+                    telop = WEATHER_Utill.TYPE_CLOUD;
                     break;
-                case "thunder":
-                    telop = "雷";
+                case WEATHER_Utill.TYPE_RAIN:
+                    telop = WEATHER_Utill.TYPE_RAIN;
                     break;
-                case "all":
-                    telop = "雪雨雷";
+                case WEATHER_Utill.TYPE_THUNDER:
+                    telop = WEATHER_Utill.TYPE_THUNDER;
+                    break;
+                case WEATHER_Utill.TYPE_SNOW:
+                    telop = WEATHER_Utill.TYPE_SNOW;
                     break;
             }
         }
         runEffect = [];
 
-        if(telop.indexOf("雷") !== -1) runEffect.push("thunder");
-        if(telop.indexOf("雪") !== -1) runEffect.push("snow");
-        if(telop.indexOf("雨") !== -1) runEffect.push("rain");
+        if(telop.indexOf(WEATHER_Utill.TYPE_THUNDER) !== -1) runEffect.push(WEATHER_Utill.TYPE_THUNDER);
+        if(telop.indexOf(WEATHER_Utill.TYPE_SNOW) !== -1) runEffect.push(WEATHER_Utill.TYPE_SNOW);
+        if(telop.indexOf(WEATHER_Utill.TYPE_RAIN) !== -1) runEffect.push(WEATHER_Utill.TYPE_RAIN);
 
         if(runEffect.length > 0){
             $target.fadeIn();
         }
 
-        for(var k in runEffect) effect[runEffect[k]].onStart((runEffect.indexOf("snow") !== -1 && runEffect.indexOf("rain") !== -1));
+        for(var k in runEffect) effect[runEffect[k]].onStart((runEffect.indexOf(WEATHER_Utill.TYPE_SNOW) !== -1 && runEffect.indexOf(WEATHER_Utill.TYPE_RAIN) !== -1));
 
         onStart_draw();
     }
@@ -326,6 +329,16 @@ var IndexMainVisualClass = function(){
     var loopTime = 1000/Util.FPS;
     var isLoop = false;
     var isPlayerVisible = false;
+    var isYoutubeApiReady = false;
+    var isWeatherReady = false;
+    var videoId = "p1luRAyaTNo";
+    var youtubeIds = [
+        ["Mdx806J4icI","pm5ZAF0vGUA","baSkyk0DcqM"],
+        ["xbqUmC_ZYhs","rN38dhYFwRI","K-skJ4flKzg"],
+        ["zaWGZepbDIw","fr0_z4801qw","0EKnqUlVdfs"],
+        ["-tUzm5G6gqI","BHQj8nvgJlg","BKj0Ge6xDFk"],
+        ["jWyohAtesjs","Wr119pD-3F8","JxWlML1ZEwQ"]
+    ];
 
     var effectCl = new IndexMainVisualEffectClass();
     parent.onCreate = function(){
@@ -342,6 +355,7 @@ var IndexMainVisualClass = function(){
         youtube.onCreate();
 
         effectCl.onCreate(parent.target);
+        isWeatherReady = false;
 
         if(Util.isBreakpoint){
 
@@ -401,13 +415,40 @@ var IndexMainVisualClass = function(){
     parent.onYouTubeIframeAPIReady = function(){
         if(isApiReady) return;
         isApiReady = true;
-        youtube.onYouTubeIframeAPIReady();
-        $iframe = $("iframe",$movie);
-        parent.onResize(Util.getWindowSize());
+        youtubeStart();
     }
 
     parent.setWether = function(_data){
+        isWeatherReady = true;
         effectCl.setWether(_data);
+
+        var type = 0;
+        var weather = _data.weather;
+        if(weather.indexOf(WEATHER_Utill.TYPE_CLEAR) !== -1){
+            type = 0;
+        } else if(weather.indexOf(WEATHER_Utill.TYPE_CLOUD) !== -1){
+            type = 1;
+        } else if(weather.indexOf(WEATHER_Utill.TYPE_RAIN) !== -1){
+            type = 2;
+        } else if(weather.indexOf(WEATHER_Utill.TYPE_THUNDER) !== -1){
+            type = 3;
+        } else if(weather.indexOf(WEATHER_Utill.TYPE_SNOW) !== -1){
+            type = 4;
+        }
+
+        var wind_type = 0;
+        var wind = _data.wind;
+        if(wind <= 1.5){
+            wind_type = 0;
+        } else if(wind > 1.5 && wind <= 13.8){
+            wind_type = 1;
+        } else if(wind > 13.8){
+            wind_type = 2;
+        }
+
+        videoId = youtubeIds[type][wind_type];
+        console.log("youtube",videoId);
+        youtubeStart();
     }
 
     parent.onStart = function(){
@@ -430,6 +471,14 @@ var IndexMainVisualClass = function(){
         youtube = null;
 
         effectCl.onRemove();
+    }
+
+    function youtubeStart(){
+        if(!isApiReady || !isWeatherReady) return;
+        youtube.setVid(videoId);
+        youtube.onYouTubeIframeAPIReady();
+        $iframe = $("iframe",$movie);
+        parent.onResize(Util.getWindowSize());
     }
 
     function startTimer(){
@@ -477,7 +526,7 @@ var IndexWeatherClass = function(){
 
     function onCallApi(){
         $.ajax({
-            url:'/php/getwether.php',
+            url:'/php/getweather.php',
             type:'GET',
             dataType:'json',
             timeout:5000,
@@ -490,16 +539,24 @@ var IndexWeatherClass = function(){
     function onCallApiEnd(_txt){
         json = JSON.parse(_txt);
 
-        var weather = json.forecasts[0];
-        var now = new Date(weather.date);
+        var now = new Date(json.dt*1000);
         var date = Util.getFormatDate(now,'YYYY/MM/DD/');
         date += weekChars[now.getDay()];
-        var temperature = (weather.temperature.max && weather.temperature.max.celsius)? weather.temperature.max.celsius : '-';
+        var temperature = json.main.temp;
+        var wind = json.wind.speed;
+        var condition = json.weather[0].main;
+
+        var data = {
+            weather:json.weather[0].description,
+            temp:temperature,
+            wind:wind
+        };
 
         $(".date",$target).html(date);
-        $(".location",$target).html('TOKYO/T: '+temperature+'C&deg');
+        $(".location",$target).html('TOKYO/'+condition);
+        $(".detail",$target).html('T: '+temperature+'C&deg/W: '+wind+'m/s');
 
-        parent.jq.trigger(parent.EVENT_WEATHER_COMPLETE,weather);
+        parent.jq.trigger(parent.EVENT_WEATHER_COMPLETE,data);
 
         $target.animate({opacity:1,y:0},Util.BASE_TIME,Util.BASE_EASING);
     }

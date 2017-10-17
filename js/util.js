@@ -7,6 +7,14 @@ if(!('console' in window)){window.console = {};window.console.log = function(str
     w[r] = w[r] || w['webkit'+r] || w['moz'+r] || w['ms'+r] || function(){ w.clearTimeout(Util.REQUESTANIMATIONFRAME_TIMEOUTID); };
 })(window, 'cancelAnimationFrame');
 
+var WEATHER_Utill = {
+    TYPE_CLEAR:"clear",//晴れ
+    TYPE_CLOUD:"cloud",//曇
+    TYPE_SNOW:"snow",//雪
+    TYPE_RAIN:"rain",//雨
+    TYPE_THUNDER:"thunder"//雷
+};
+
 var Util = {
     BREAK_POINT: 750,
     FPS:60,
@@ -564,6 +572,10 @@ var YoutubePlayerClass = function(_tid,_vid){
     parent.onRemove = function(){
 
     }
+
+    parent.setVid = function(_vid){
+        vid = _vid;
+    };
 
     function onPlayerReady(event) {
         isPlayerReady = true;
