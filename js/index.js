@@ -209,7 +209,7 @@ var IndexEffectRainClass = function(){
 
 var IndexMainVisualEffectClass = function(){
     var parent = new BaseClass();
-    var $parentTarget,$target;
+    var $parentTarget,$target,$bg;
     var data;
     var isDraw = false;
     var effect = {
@@ -222,6 +222,7 @@ var IndexMainVisualEffectClass = function(){
     parent.onCreate = function(_parentTarget){
         $parentTarget = _parentTarget;
         $target = $(".effect",$parentTarget);
+        $bg = $(".bg",$parentTarget);
         for(var k in effect) effect[k].onCreate($target);
     }
 
@@ -235,8 +236,10 @@ var IndexMainVisualEffectClass = function(){
 
         var top = offset.top * -1;
         var left = offset.left * -1;
+        if(Util.isBreakpoint) left = 0;
 
         $target.css({width:width,height:height,top:top,left:left});
+        $bg.css({width:width,height:height,top:top,left:left});
         for(var k in effect) effect[k].onResize(baseSize);
     }
 
@@ -276,9 +279,8 @@ var IndexMainVisualEffectClass = function(){
         if(telop.indexOf(WEATHER_Utill.TYPE_SNOW) !== -1) runEffect.push(WEATHER_Utill.TYPE_SNOW);
         if(telop.indexOf(WEATHER_Utill.TYPE_RAIN) !== -1) runEffect.push(WEATHER_Utill.TYPE_RAIN);
 
-        if(runEffect.length > 0){
-            $target.fadeIn();
-        }
+        if(runEffect.length > 0)$target.fadeIn();
+        if(telop !== WEATHER_Utill.TYPE_CLEAR)$bg.fadeIn();
 
         for(var k in runEffect) effect[runEffect[k]].onStart((runEffect.indexOf(WEATHER_Utill.TYPE_SNOW) !== -1 && runEffect.indexOf(WEATHER_Utill.TYPE_RAIN) !== -1));
 
@@ -356,17 +358,19 @@ var IndexMainVisualClass = function(){
 
         effectCl.onCreate(parent.target);
         isWeatherReady = false;
-
-        if(Util.isBreakpoint){
-
-        } else {
-            SIZE_MOVE = {w:890,h:505};
-        }
     }
 
     parent.onLoad = function(){
         parent.super.onLoad();
         youtube.onStart();
+    }
+
+    parent.onChangeBreakPoint = function(){
+        if(Util.isBreakpoint){
+            SIZE_MOVE = {w:560,h:315};
+        } else {
+            SIZE_MOVE = {w:890,h:500};
+        }
     }
 
     parent.onResize = function(size){
@@ -420,30 +424,32 @@ var IndexMainVisualClass = function(){
 
     parent.setWether = function(_data){
         isWeatherReady = true;
-        effectCl.setWether(_data);
 
         var type = 0;
-        var weather = _data.weather;
-        if(weather.indexOf(WEATHER_Utill.TYPE_CLEAR) !== -1){
-            type = 0;
-        } else if(weather.indexOf(WEATHER_Utill.TYPE_CLOUD) !== -1){
-            type = 1;
-        } else if(weather.indexOf(WEATHER_Utill.TYPE_RAIN) !== -1){
-            type = 2;
-        } else if(weather.indexOf(WEATHER_Utill.TYPE_THUNDER) !== -1){
-            type = 3;
-        } else if(weather.indexOf(WEATHER_Utill.TYPE_SNOW) !== -1){
-            type = 4;
-        }
-
         var wind_type = 0;
-        var wind = _data.wind;
-        if(wind <= 1.5){
-            wind_type = 0;
-        } else if(wind > 1.5 && wind <= 13.8){
-            wind_type = 1;
-        } else if(wind > 13.8){
-            wind_type = 2;
+        if(_data && _data.weather){
+            effectCl.setWether(_data);
+            var weather = _data.weather;
+            if(weather.indexOf(WEATHER_Utill.TYPE_CLEAR) !== -1){
+                type = 0;
+            } else if(weather.indexOf(WEATHER_Utill.TYPE_CLOUD) !== -1){
+                type = 1;
+            } else if(weather.indexOf(WEATHER_Utill.TYPE_RAIN) !== -1){
+                type = 2;
+            } else if(weather.indexOf(WEATHER_Utill.TYPE_THUNDER) !== -1){
+                type = 3;
+            } else if(weather.indexOf(WEATHER_Utill.TYPE_SNOW) !== -1){
+                type = 4;
+            }
+
+            var wind = _data.wind;
+            if(wind <= 1.5){
+                wind_type = 0;
+            } else if(wind > 1.5 && wind <= 13.8){
+                wind_type = 1;
+            } else if(wind > 13.8){
+                wind_type = 2;
+            }
         }
 
         videoId = youtubeIds[type][wind_type];
@@ -537,7 +543,12 @@ var IndexWeatherClass = function(){
     }
 
     function onCallApiEnd(_txt){
-        json = JSON.parse(_txt);
+        try {
+            json = JSON.parse(_txt);
+        } catch(e){
+            parent.jq.trigger(parent.EVENT_WEATHER_COMPLETE,null);
+            return;
+        }
 
         var now = new Date(json.dt*1000);
         var date = Util.getFormatDate(now,'YYYY/MM/DD/');

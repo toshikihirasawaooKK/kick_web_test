@@ -12,6 +12,11 @@ SetEnvIf User-Agent "^facebookplatform.*$" crawler
 SetEnvIf User-Agent "^Twitterbot.*$" crawler
 Allow from env=crawler
 
+<Files ~ "(runWeather\.php)$">
+Satisfy Any
+Allow from all
+</Files>
+
 #<Files ~ "\.(wav|mp3|ogg)$">
 #Satisfy Any
 #Allow from all
