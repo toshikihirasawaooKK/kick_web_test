@@ -9,6 +9,11 @@ $URL = "http://api.openweathermap.org/data/2.5/weather?q=Tokyo,JP&units=metric&a
 $json = file_get_contents($URL);
 $json = mb_convert_encoding( $json, 'UTF8', 'ASCII,JIS,UTF-8,EUC-JP,SJIS-WIN' );
 
+if(empty($json)){
+	printf("file_get_contents: %s\n", "result error");
+exit();
+}
+
 $link = mysqli_connect($DB_URL,$DB_USER,$DB_PASS,$DB_USER);
 if (mysqli_connect_errno()) {
 	printf("Connect failed: %s\n", mysqli_connect_error());

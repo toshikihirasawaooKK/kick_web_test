@@ -280,7 +280,10 @@ var IndexMainVisualEffectClass = function(){
         if(telop.indexOf(WEATHER_Utill.TYPE_RAIN) !== -1) runEffect.push(WEATHER_Utill.TYPE_RAIN);
 
         if(runEffect.length > 0)$target.fadeIn();
-        if(telop !== WEATHER_Utill.TYPE_CLEAR)$bg.fadeIn();
+        if(telop.indexOf(WEATHER_Utill.TYPE_THUNDER) !== -1 ||
+            telop.indexOf(WEATHER_Utill.TYPE_SNOW) !== -1 ||
+            telop.indexOf(WEATHER_Utill.TYPE_RAIN) !== -1 ||
+            telop.indexOf(WEATHER_Utill.TYPE_CLOUD) !== -1 ) $bg.fadeIn();
 
         for(var k in runEffect) effect[runEffect[k]].onStart((runEffect.indexOf(WEATHER_Utill.TYPE_SNOW) !== -1 && runEffect.indexOf(WEATHER_Utill.TYPE_RAIN) !== -1));
 
@@ -425,6 +428,16 @@ var IndexMainVisualClass = function(){
     parent.setWether = function(_data){
         isWeatherReady = true;
 
+        var urlVar = Util.getUrlVars();
+        if(urlVar){
+            if(!_data){
+                _data = {weather:WEATHER_Utill.TYPE_CLEAR,wind:0};
+            }
+            if(urlVar.weather) _data.weather = urlVar.weather;
+            if(urlVar.wind) _data.wind = urlVar.wind;
+        }
+        console.log(_data);
+
         var type = 0;
         var wind_type = 0;
         if(_data && _data.weather){
@@ -453,7 +466,7 @@ var IndexMainVisualClass = function(){
         }
 
         videoId = youtubeIds[type][wind_type];
-        console.log("youtube",videoId);
+        console.log("youtube",videoId,weather,wind);
         youtubeStart();
     }
 
